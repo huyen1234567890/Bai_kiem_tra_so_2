@@ -82,31 +82,41 @@
             }else {
                 echo "No courses found";
             }
+
+            if (isset($_POST['submit'])) {
+                $filename = $_POST['filename'];  // Lấy tên file từ form
+                $content = ""; // Nội dung muốn ghi vào file
+            
+                // Tạo thư mục uploads nếu chưa tồn tại
+                $directory = ".";
+                if (!is_dir($directory)) {
+                    mkdir($directory, 0777, true); // Tạo thư mục với quyền 0777
+                }
+            
+                // Lấy dữ liệu từ database để ghi vào file
+                if ($result->num_rows > 0) {
+                    while($row = $result->fetch_assoc()) {
+                        $content .= "Title: " . $row["title"] . "\n";
+                        $content .= "Description: " . $row["description"] . "\n";
+                        $content .= "Image: " . $row["image"] . "\n\n";
+                    }
+                } else {
+                    $content = "No courses found\n";
+                }
+            
+                $filepath = $directory . $filename . ".txt"; // Đường dẫn đầy đủ tới file
+            
+                // Kiểm tra và ghi file
+                if (file_put_contents($filepath, $content) === false) {
+                    echo '<div class="alert alert-danger" role="alert">Failed to write the file.</div>';
+                } else {
+                    echo '<div class="alert alert-success" role="alert">File "' . $filepath . '" has been written successfully!</div>';
+                }
+            }
             $conn->close(); // Đóng kết nối
 
-        if (isset($_POST['submit'])) {
-            $filename = $_POST['filename'];  // Lấy tên file từ form
-            $content = ""; // Nội dung muốn ghi vào file
-        
-            // Lấy dữ liệu từ database để ghi vào file
-            if ($result->num_rows > 0) {
-                while($row = $result->fetch_assoc()) {
-                    $content .= "Title: " . $row["title"] . "\n";
-                    $content .= "Description: " . $row["description"] . "\n";
-                    $content .= "Image: " . $row["image"] . "\n\n";
-                }
-            } else {
-                $content = "No courses found\n";
-            }
-        
-            // Kiểm tra và ghi file
-            if (!file_put_contents($filename . ".txt", $content)) {
-                echo '<div class="alert alert-danger" role="alert">Failed to write the file.</div>';
-                
-            } else {
-                echo '<div class="alert alert-success" role="alert">File "' . $filename . '.txt" has been written successfully!</div>';
-            }
-        }
+            
+            
         ?>
 
 
