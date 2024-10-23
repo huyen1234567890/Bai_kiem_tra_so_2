@@ -83,37 +83,48 @@
                 echo "No courses found";
             }
 
+           // Xử lý ghi file nếu người dùng nhấn submit
             if (isset($_POST['submit'])) {
-                $filename = $_POST['filename'];  // Lấy tên file từ form
-                $content = ""; // Nội dung muốn ghi vào file
-            
-                // Tạo thư mục uploads nếu chưa tồn tại
-                $directory = ".";
-                if (!is_dir($directory)) {
-                    mkdir($directory, 0777, true); // Tạo thư mục với quyền 0777
-                }
-            
-                // Lấy dữ liệu từ database để ghi vào file
+                $filename = $_POST['filename'] . ".txt"; 
+                $fileContent = "\n"; 
+
+                // Lấy dữ liệu từ database
+                $sql = "SELECT Title, Description, ImageUrl FROM course"; 
+                $result = $conn->query($sql);
+
                 if ($result->num_rows > 0) {
-                    while($row = $result->fetch_assoc()) {
-                        $content .= "Title: " . $row["title"] . "\n";
-                        $content .= "Description: " . $row["description"] . "\n";
-                        $content .= "Image: " . $row["image"] . "\n\n";
+                    while ($row = $result->fetch_assoc()) {
+                        // Kiểm tra xem các khóa có tồn tại trong mảng không
+                        if (isset($row['Title']) && isset($row['Description'])) {
+                            $fileContent .= "Tiêu đề: " . $row['Title'] . "\nMô tả: " . $row['Description'] . "\nHình ảnh: " . $row['ImageUrl'] . "\n\n"; // Ghi dữ liệu vào nội dung file
+                        }
                     }
                 } else {
-                    $content = "No courses found\n";
+                    $fileContent .= "Không có khóa học nào.\n"; 
                 }
-            
-                $filepath = $directory . $filename . ".txt"; // Đường dẫn đầy đủ tới file
-            
-                // Kiểm tra và ghi file
-                if (file_put_contents($filepath, $content) === false) {
-                    echo '<div class="alert alert-danger" role="alert">Failed to write the file.</div>';
+
+                // Ghi nội dung vào file
+                if (file_put_contents($filename, $fileContent) !== false) {
+                    echo '<div class="alert alert-success">File mới đã được tạo và dữ liệu đã được ghi.</div>';
                 } else {
-                    echo '<div class="alert alert-success" role="alert">File "' . $filepath . '" has been written successfully!</div>';
+                    echo '<div class="alert alert-danger">Không thể ghi vào file.</div>';
                 }
             }
-            $conn->close(); // Đóng kết nối
+
+        // Lấy danh sách khóa học để hiển thị trên trang
+        $courses = [];
+        $sql = "SELECT Title, Description, ImageUrl FROM course"; 
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $courses[] = $row; 
+            }
+        } else {
+            echo '<div class="alert alert-warning">Không có khóa học nào để hiển thị.</div>';
+        }
+
+        $conn->close(); // Đóng kết nối
 
             
             
